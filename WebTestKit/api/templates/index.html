@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WebTestKit — MSBTE K-Scheme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── Variables ───────────────────────────────────────────── */
+:root {
+  --bg:       #070d1a;
+  --surface:  #0e1a2e;
+  --card:     #111e35;
+  --border:   #1e3255;
+  --accent:   #00e5a0;
+  --accent2:  #3b82f6;
+  --warn:     #f97316;
+  --danger:   #ef4444;
+  --text:     #d0e4ff;
+  --muted:    #5a7ba0;
+  --font-ui:  'Syne', sans-serif;
+  --font-mono:'Share Tech Mono', monospace;
+}
+
+/* ─── Reset & Base ────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid-noise background */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,229,160,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,160,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Layout ──────────────────────────────────────────────── */
+.container { max-width: 960px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+/* ─── Header ──────────────────────────────────────────────── */
+header {
+  padding: 48px 0 32px;
+  text-align: center;
+  position: relative;
+}
+.badge {
+  display: inline-block;
+  background: rgba(0,229,160,.12);
+  border: 1px solid rgba(0,229,160,.3);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 4px 14px;
+  border-radius: 2px;
+  margin-bottom: 18px;
+  animation: fadeDown .6s ease both;
+}
+h1 {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  animation: fadeDown .7s ease both .1s;
+}
+h1 span { color: var(--accent); }
+.tagline {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: .95rem;
+  font-family: var(--font-mono);
+  animation: fadeDown .7s ease both .2s;
+}
+
+/* ─── Nav Tabs ────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin: 32px 0 40px;
+  animation: fadeDown .7s ease both .3s;
+}
+.tab-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: .875rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+  padding: 10px 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tab-btn.active {
+  background: linear-gradient(135deg, rgba(0,229,160,.15), rgba(59,130,246,.1));
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 20px rgba(0,229,160,.15);
+}
+.tab-btn .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .7;
+}
+
+/* ─── Panels ──────────────────────────────────────────────── */
+.panel { display: none; animation: fadeIn .4s ease both; }
+.panel.active { display: block; }
+
+/* ─── Card ────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px 30px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.card-title .icon { font-size: 1.3rem; }
+
+/* ─── Form Elements ───────────────────────────────────────── */
+.field { margin-bottom: 16px; }
+label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+input[type=text], select, textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: .9rem;
+  padding: 11px 14px;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+input[type=text]:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,229,160,.1);
+}
+textarea { resize: vertical; min-height: 80px; }
+select { appearance: none; cursor: pointer; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px;
+  border: none; border-radius: 6px;
+  font-family: var(--font-ui);
+  font-size: .9rem; font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .3px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #07130e;
+}
+.btn-primary:hover { background: #00ffb3; box-shadow: 0 0 24px rgba(0,229,160,.4); }
+.btn-danger {
+  background: var(--warn);
+  color: #fff;
+}
+.btn-danger:hover { background: #fb923c; box-shadow: 0 0 24px rgba(249,115,22,.3); }
+.btn-blue {
+  background: var(--accent2);
+  color: #fff;
+}
+.btn-blue:hover { background: #60a5fa; box-shadow: 0 0 24px rgba(59,130,246,.35); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ─── Spinner ─────────────────────────────────────────────── */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(0,0,0,.25);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: none;
+}
+.loading .spinner { display: block; }
+.loading .btn-label { display: none; }
+
+/* ─── Results ─────────────────────────────────────────────── */
+#sentinel-results, #sql-result { margin-top: 22px; }
+
+.result-header {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Link table */
+.link-table { width: 100%; border-collapse: collapse; }
+.link-table th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.link-table td {
+  padding: 9px 12px;
+  font-size: .82rem;
+  font-family: var(--font-mono);
+  border-bottom: 1px solid rgba(30,50,85,.5);
+  vertical-align: middle;
+}
+.link-table tr:last-child td { border-bottom: none; }
+.link-table tr:hover td { background: rgba(0,229,160,.03); }
+
+.status-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.s-ok   { background: rgba(0,229,160,.15); color: var(--accent); border: 1px solid rgba(0,229,160,.3); }
+.s-warn { background: rgba(249,115,22,.15); color: var(--warn);  border: 1px solid rgba(249,115,22,.3); }
+.s-bad  { background: rgba(239,68,68,.15);  color: var(--danger);border: 1px solid rgba(239,68,68,.3); }
+
+/* SQL verdict card */
+.verdict-box {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 22px;
+  border-radius: 8px;
+  border: 1px solid;
+  margin-top: 4px;
+}
+.verdict-box.safe   { background: rgba(0,229,160,.07); border-color: rgba(0,229,160,.3); }
+.verdict-box.vuln   { background: rgba(239,68,68,.07);  border-color: rgba(239,68,68,.4); }
+.verdict-icon { font-size: 2rem; }
+.verdict-title { font-size: 1.1rem; font-weight: 800; }
+.verdict-sub   { font-size: .8rem; font-family: var(--font-mono); color: var(--muted); margin-top: 3px; }
+
+/* ─── Report Panel ────────────────────────────────────────── */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin: 24px 0 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ─── Animations ──────────────────────────────────────────── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Footer ──────────────────────────────────────────────── */
+footer {
+  text-align: center;
+  padding: 40px 0 30px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  position: relative; z-index: 1;
+}
+footer span { color: var(--accent); }
+
+/* ─── Responsive ──────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .tabs { flex-direction: column; align-items: center; }
+  .card { padding: 20px 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <header>
+    <h1>Web<span>Test</span>Kit</h1>
+    <p class="tagline">// link-sentinel · sql-scanner · defect-report-generator</p>
+  </header>
+
+  <!-- ── Tab Navigation ──────────────────────────────────────── -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('sentinel',this)">
+      <div class="dot"></div> URL Sentinel
+    </button>
+    <button class="tab-btn" onclick="switchTab('sql',this)">
+      <div class="dot"></div> SQL Scanner
+    </button>
+    <button class="tab-btn" onclick="switchTab('report',this)">
+      <div class="dot"></div> Defect Report
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- PANEL 1 — URL SENTINEL                                     -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-sentinel">
+    <div class="card">
+      <div class="card-title"><span class="icon">🔗</span> URL Sentinel — Link Health Checker</div>
+      <div class="field">
+        <label>Target URL</label>
+        <input type="text" id="sentinel-url" placeholder="https://example.com" />
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="sentinel-btn" onclick="runSentinel()">
+          <div class="spinner"></div>
+          <span class="btn-label">⚡ Scan Links</span>
+        </button>
+        <button class="btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border);" onclick="clearSentinel()">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <div id="sentinel-results"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- PANEL 2 — SQL SCANNER                                      -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-sql">
+    <div class="card">
+      <div class="card-title"><span class="icon">🛡️</span> SQL-Scanner — Injection Risk Detector</div>
+      <p style="font-size:.83rem;color:var(--muted);font-family:var(--font-mono);margin-bottom:18px;">
+        // Passive heuristic check only — not a replacement for a full pentest
+      </p>
+      <div class="field">
+        <label>Target URL (with query string for best results)</label>
+        <input type="text" id="sql-url" placeholder="https://example.com/page?id=1" />
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-danger" id="sql-btn" onclick="runSQL()">
+          <div class="spinner"></div>
+          <span class="btn-label">🔍 Run Scan</span>
+        </button>
+        <button class="btn" style="background:var(--surface);color:var(--muted);border:1px solid var(--border);" onclick="clearSQL()">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <div id="sql-result"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- PANEL 3 — DEFECT REPORT                                    -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-report">
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span> Defect Report Generator</div>
+
+      <form id="report-form">
+
+        <div class="section-label">Basic Info</div>
+        <div class="grid-2">
+          <div class="field"><label>Defect ID</label><input type="text" name="id" placeholder="D-001" /></div>
+          <div class="field"><label>Project</label><input type="text" name="project" placeholder="Project Alpha" /></div>
+          <div class="field"><label>Product</label><input type="text" name="product" placeholder="WebApp v2" /></div>
+          <div class="field"><label>Release</label><input type="text" name="release" placeholder="1.0.0" /></div>
+          <div class="field"><label>Module</label><input type="text" name="module" placeholder="Authentication" /></div>
+          <div class="field"><label>Build / Version</label><input type="text" name="build" placeholder="Build 42" /></div>
+        </div>
+
+        <div class="section-label">Status &amp; Classification</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Current Status</label>
+            <select name="status">
+              <option value="New">New</option>
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Closed">Closed</option>
+              <option value="Reopened">Reopened</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Severity</label>
+            <select name="severity">
+              <option value="Critical">Critical</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Priority</label>
+            <select name="priority">
+              <option value="P1 — Urgent">P1 — Urgent</option>
+              <option value="P2 — High">P2 — High</option>
+              <option value="P3 — Medium">P3 — Medium</option>
+              <option value="P4 — Low">P4 — Low</option>
+            </select>
+          </div>
+          <div class="field"><label>Reported By</label><input type="text" name="reported" placeholder="Tester Name" /></div>
+          <div class="field"><label>Assigned To</label><input type="text" name="assigned" placeholder="Developer Name" /></div>
+        </div>
+
+        <div class="section-label">Description</div>
+        <div class="field"><label>Summary</label><input type="text" name="summary" placeholder="One-line description of the defect" /></div>
+        <div class="field"><label>Detailed Description</label><textarea name="description" placeholder="Full description of the issue..."></textarea></div>
+        <div class="field"><label>Steps to Replicate</label><textarea name="steps" placeholder="1. Open the app&#10;2. Click Login&#10;3. Enter invalid credentials..."></textarea></div>
+        <div class="grid-2">
+          <div class="field"><label>Actual Result</label><textarea name="actual" placeholder="What actually happened..."></textarea></div>
+          <div class="field"><label>Expected Result</label><textarea name="expected" placeholder="What should have happened..."></textarea></div>
+        </div>
+
+        <div style="margin-top:8px;">
+          <button type="button" class="btn btn-blue" id="report-btn" onclick="downloadReport()">
+            <div class="spinner"></div>
+            <span class="btn-label">⬇ Generate PDF Report</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  <p>Build By — <span>Atharav Ambargi</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span>WebTestKit</span></p>
+</footer>
+
+<!-- ─── Scripts ──────────────────────────────────────────── -->
+<script>
+/* Tab switcher */
+function switchTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+/* Loading state */
+function setLoading(btnId, on) {
+  const btn = document.getElementById(btnId);
+  if (on) btn.classList.add('loading');
+  else btn.classList.remove('loading');
+  btn.disabled = on;
+}
+
+/* ── Sentinel ─────────────────────────────────────────── */
+async function runSentinel() {
+  const url = document.getElementById('sentinel-url').value.trim();
+  if (!url) { alert('Please enter a URL.'); return; }
+  const box = document.getElementById('sentinel-results');
+  setLoading('sentinel-btn', true);
+  box.innerHTML = '<p style="color:var(--muted);font-family:var(--font-mono);font-size:.85rem;padding:12px 0;">Scanning links…</p>';
+
+  try {
+    const res = await fetch('/api/sentinel', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await res.json();
+    renderSentinel(data);
+  } catch(e) {
+    box.innerHTML = `<p style="color:var(--danger);font-family:var(--font-mono);">Error: ${e.message}</p>`;
+  } finally {
+    setLoading('sentinel-btn', false);
+  }
+}
+
+function statusClass(s) {
+  if (s === 200 || s === 301 || s === 302) return 's-ok';
+  if (typeof s === 'string' || s >= 400) return 's-bad';
+  return 's-warn';
+}
+
+function renderSentinel(data) {
+  if (!data.length) { document.getElementById('sentinel-results').innerHTML = '<p style="color:var(--muted)">No results.</p>'; return; }
+  const rows = data.map(d => `
+    <tr>
+      <td style="word-break:break-all;max-width:0;width:70%"><a href="${d.url}" target="_blank" style="color:var(--accent2);text-decoration:none;">${d.url}</a></td>
+      <td><span class="status-pill ${statusClass(d.status)}">${d.status}</span></td>
+    </tr>`).join('');
+  document.getElementById('sentinel-results').innerHTML = `
+    <div class="card" style="padding:20px 24px;">
+      <div class="result-header">// SCAN RESULTS — ${data.length} LINKS FOUND</div>
+      <table class="link-table">
+        <thead><tr><th>URL</th><th>Status</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function clearSentinel() {
+  document.getElementById('sentinel-url').value = '';
+  document.getElementById('sentinel-results').innerHTML = '';
+}
+
+/* ── SQL Scanner ──────────────────────────────────────── */
+async function runSQL() {
+  const url = document.getElementById('sql-url').value.trim();
+  if (!url) { alert('Please enter a URL.'); return; }
+  const box = document.getElementById('sql-result');
+  setLoading('sql-btn', true);
+  box.innerHTML = '<p style="color:var(--muted);font-family:var(--font-mono);font-size:.85rem;padding:12px 0;">Running payloads…</p>';
+
+  try {
+    const res = await fetch('/api/sql', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await res.json();
+    renderSQL(data);
+  } catch(e) {
+    box.innerHTML = `<p style="color:var(--danger);font-family:var(--font-mono);">Error: ${e.message}</p>`;
+  } finally {
+    setLoading('sql-btn', false);
+  }
+}
+
+function renderSQL(data) {
+  const isVuln = data.verdict === 'VULNERABLE';
+  let issuesHtml = '';
+  if (isVuln && data.issues && data.issues.length) {
+    issuesHtml = `<div style="margin-top:14px;font-family:var(--font-mono);font-size:.78rem;color:var(--muted);">
+      ${data.issues.map(i => `<div style="margin-bottom:6px;"><span style="color:var(--danger);">[PAYLOAD]</span> ${i.payload} → <span style="color:var(--warn);">${i.signatures.join(', ')}</span></div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('sql-result').innerHTML = `
+    <div class="card" style="padding:20px 24px;">
+      <div class="result-header">// SCAN VERDICT</div>
+      <div class="verdict-box ${isVuln ? 'vuln' : 'safe'}">
+        <div class="verdict-icon">${isVuln ? '🚨' : '✅'}</div>
+        <div>
+          <div class="verdict-title" style="color:${isVuln ? 'var(--danger)' : 'var(--accent)'}">${data.verdict}</div>
+          <div class="verdict-sub">${data.label}</div>
+        </div>
+      </div>
+      ${issuesHtml}
+    </div>`;
+}
+
+function clearSQL() {
+  document.getElementById('sql-url').value = '';
+  document.getElementById('sql-result').innerHTML = '';
+}
+
+/* ── Defect Report ────────────────────────────────────── */
+async function downloadReport() {
+  const form = document.getElementById('report-form');
+  const formData = new FormData(form);
+  setLoading('report-btn', true);
+
+  try {
+    const res = await fetch('/api/report', { method: 'POST', body: formData });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const blob = await res.blob();
+    const id = formData.get('id') || 'R1';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Defect_Report_${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    alert('Error generating PDF: ' + e.message);
+  } finally {
+    setLoading('report-btn', false);
+  }
+}
+</script>
+</body>
+</html>
